@@ -1,13 +1,17 @@
-import { component$, useSignal,  } from "@builder.io/qwik";
-import Sidebar from '~/components/Sidebar';
+import { component$, useSignal } from "@builder.io/qwik";
+import Sidebar from "~/components/Sidebar";
 import Navbar from "~/components/Navbar";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import Donutchart from "~/components/chart/Donutchart";
 import Barchart from "~/components/chart/Barchart";
-import { barData,donutData } from "~/components/chart/chartdta";
+import { barData, donutData } from "~/components/chart/chartdta";
+import { useLogout } from "~/components/api/post";
+
+export { useLogout };
 
 export default component$(() => {
   const isOpen = useSignal<boolean>(true);
+  const logoutAction = useLogout();
 
 
 
@@ -17,7 +21,7 @@ export default component$(() => {
       <Navbar isOpen={isOpen} />
 
       <div class="flex flex-row flex-1 overflow-hidden">
-        <Sidebar isOpen={isOpen} />
+        <Sidebar isOpen={isOpen} logoutAction={logoutAction} />
 
         <main class="flex-1 bg-gray-100 overflow-y-auto p-4 flex flex-col gap-4">
 

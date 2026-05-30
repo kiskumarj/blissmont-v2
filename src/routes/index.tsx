@@ -1,7 +1,19 @@
 import { component$ } from "@builder.io/qwik";
+import { Form, routeLoader$ } from "@builder.io/qwik-city";
 import type { DocumentHead } from "@builder.io/qwik-city";
+import { useLogin } from "~/components/api/post";
+
+export { useLogin };
+
+export const useRedirectIfAuthed = routeLoader$(({ cookie, redirect }) => {
+  if (cookie.get("accessToken")?.value) {
+    throw redirect(302, "/admin");
+  }
+});
 
 export default component$(() => {
+  useRedirectIfAuthed();
+  const loginAction = useLogin();
   return (
     <div class="flex-row w-full h-screen flex">
       {/* LEFT PANEL */}
@@ -130,19 +142,28 @@ export default component$(() => {
     {/* Login Form Body */}
     <div class="flex flex-col flex-1 px-8 py-5 justify-between">
 
-      {/* Fields */}
-      <div class="flex flex-col gap-4">
+      <Form action={loginAction} class="flex flex-col gap-4">
         <p class="text-[11px] text-gray-400">Enter your credentials to access the ERP system.</p>
+
+        {loginAction.value?.failed && (
+          <p class="text-[12px] text-red-600 bg-red-50 border border-red-200 px-3 py-2">
+            {loginAction.value.message ?? "Sign in failed. Please try again."}
+          </p>
+        )}
 
         {/* User ID */}
         <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold tracking-widest text-gray-500 uppercase">
+          <label class="text-[10px] font-bold tracking-widest text-gray-500 uppercase" for="email">
             User ID / Email Address
           </label>
           <div class="flex flex-row items-center border border-blue-300 bg-blue-50 px-3 gap-2">
             <i class="bi bi-person text-gray-400 text-sm"></i>
             <input
+              id="email"
+              name="email"
               type="email"
+              required
+              autocomplete="email"
               placeholder="you@example.com"
               class="flex-1 bg-transparent outline-none text-[13px] py-2 text-gray-700 placeholder:text-gray-400"
             />
@@ -152,7 +173,7 @@ export default component$(() => {
         {/* Password */}
         <div class="flex flex-col gap-1">
           <div class="flex justify-between items-center">
-            <label class="text-[10px] font-bold tracking-widest text-gray-500 uppercase">
+            <label class="text-[10px] font-bold tracking-widest text-gray-500 uppercase" for="password">
               Password
             </label>
             <a href="#" class="text-[11px] text-blue-500 hover:underline">Forgot password?</a>
@@ -160,7 +181,11 @@ export default component$(() => {
           <div class="flex flex-row items-center border border-gray-300 bg-white px-3 gap-2">
             <i class="bi bi-lock text-gray-400 text-sm"></i>
             <input
+              id="password"
+              name="password"
               type="password"
+              required
+              autocomplete="current-password"
               placeholder="••••••••••••"
               class="flex-1 bg-transparent outline-none text-[13px] py-2 text-gray-700 placeholder:text-gray-400"
             />
@@ -175,18 +200,22 @@ export default component$(() => {
         </div>
 
         {/* Sign In Button */}
-        <button class="w-full bg-blue-700 hover:bg-blue-800 text-white text-[13px] font-semibold py-2.5 flex items-center justify-center gap-2 transition-colors">
+        <button
+          type="submit"
+          disabled={loginAction.isRunning}
+          class="w-full bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-[13px] font-semibold py-2.5 flex items-center justify-center gap-2 transition-colors"
+        >
           <i class="bi bi-box-arrow-in-right"></i>
-          Sign In to BlissMontERP
+          {loginAction.isRunning ? "Signing in..." : "Sign In to BlissMontERP"}
         </button>
-      </div>
+      </Form>
 
       {/* Footer */}
       <div class="flex flex-col gap-2 border-t border-gray-200 pt-4">
         <p class="text-center text-[12px] text-gray-400">
           <i class="bi bi-star mr-1"></i>
           Don't have an account?{" "}
-          <a href="#" class="text-blue-600 font-semibold hover:underline">Sign Up</a>
+          <a href="/signup" class="text-blue-600 font-semibold hover:underline">Sign Up</a>
         </p>
         <div class="flex justify-center gap-4 text-[10px] text-gray-300">
           <span>© 2026 BlissMontERP Inc.</span>
